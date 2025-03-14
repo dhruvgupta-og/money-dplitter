@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SplitEase - Student Expense Splitter</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6C63FF;
+            --secondary: #4CAF50;
+            --danger: #FF5252;
+            --dark: #2C3E50;
+            --light: #F8F9FA;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        body {
+            background: #f0f2f5;
+            color: var(--dark);
+            line-height: 1.6;
+        }
+
+        .navbar {
+            background: var(--primary);
+            color: white;
+            padding: 1rem 2rem;
+            box-shadow: var(--shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 2rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: var(--shadow);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        h2 {
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .input-group {
+            margin-bottom: 1.2rem;
+            position: relative;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s;
+            background: var(--light);
+        }
+
+        input:focus, select:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.1);
+        }
+
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(108, 99, 255, 0.2);
+        }
+
+        .members-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 1rem;
+        }
+
+        .member-chip {
+            background: var(--light);
+            padding: 8px 16px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            animation: slideIn 0.3s ease;
+            box-shadow: var(--shadow);
+            transition: all 0.3s;
+        }
+
+        .member-chip:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+        }
+
+        .delete-btn {
+            color: var(--danger);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .delete-btn:hover {
+            transform: scale(1.2);
+        }
+
+        .split-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .select-all-btn {
+            background: var(--light);
+            color: var(--primary);
+            border: 2px solid var(--primary);
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .select-all-btn.selected {
+            background: var(--primary);
+            color: white;
+        }
+
+        .split-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 1rem;
+            padding: 1rem;
+            background: var(--light);
+            border-radius: 10px;
+        }
+
+        .split-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .expense-item {
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+            transition: background 0.3s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .expense-item:hover {
+            background: var(--light);
+        }
+
+        .expense-info h3 {
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+
+        .expense-amount {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .settlement-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+            transition: all 0.3s;
+        }
+
+        .settlement-item:hover {
+            background: var(--light);
+        }
+
+        .gets-money {
+            color: var(--secondary);
+        }
+
+        .owes-money {
+            color: var(--danger);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            color: white;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+
+        .notification.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Custom checkbox style */
+        .split-option input[type="checkbox"] {
+            display: none;
+        }
+
+        .split-option label {
+            padding: 8px 16px;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            display: block;
+            text-align: center;
+        }
+
+        .split-option input[type="checkbox"]:checked + label {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .container {
+                max-width: 95%;
+                grid-template-columns: 280px 1fr;
+                gap: 1rem;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                gap: 1rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 1rem;
+                flex-direction: column;
+                gap: 10px;
+                text-align: center;
+            }
+
+            .card {
+                padding: 1rem;
+                margin-bottom: 1rem;
+            }
+
+            .btn {
+                padding: 10px 20px;
+                font-size: 0.9rem;
+            }
+
+            .split-options {
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            }
+
+            .expense-item {
+                flex-direction: column;
+                gap: 10px;
+                text-align: center;
+            }
+
+            .expense-info {
+                width: 100%;
+            }
+
+            .members-list {
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .container {
+                margin: 1rem auto;
+                padding: 0 0.5rem;
+            }
+
+            h2 {
+                font-size: 1.2rem;
+            }
+
+            .input-group {
+                margin-bottom: 0.8rem;
+            }
+
+            input, select {
+                padding: 10px;
+                font-size: 0.9rem;
+            }
+
+            .member-chip {
+                padding: 6px 12px;
+                font-size: 0.9rem;
+            }
+
+            .split-header {
+                flex-direction: column;
+                gap: 10px;
+                align-items: stretch;
+            }
+
+            .select-all-btn {
+                width: 100%;
+            }
+
+            .settlement-item {
+                flex-direction: column;
+                text-align: center;
+                gap: 5px;
+            }
+        }
+
+        /* Mobile-First Enhancements */
+        .mobile-menu-btn {
+            display: none;
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .mobile-menu-btn {
+                display: block;
+                position: absolute;
+                right: 1rem;
+                top: 1rem;
+            }
+
+            .sidebar {
+                display: none;
+                animation: slideDown 0.3s ease;
+            }
+
+            .sidebar.show {
+                display: block;
+            }
+
+            @keyframes slideDown {
+                from {
+                    opacity: 0;
+                    transform: translateY(-20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            /* Enhanced Mobile Experience */
+            .card {
+                border-radius: 10px;
+                margin-bottom: 1rem;
+            }
+
+            .expense-item {
+                position: relative;
+                padding: 15px;
+            }
+
+            .expense-amount {
+                position: relative;
+                right: auto;
+                top: auto;
+                margin-top: 10px;
+            }
+
+            .split-options label {
+                padding: 12px;
+                font-size: 0.9rem;
+            }
+
+            /* Better Touch Targets */
+            .btn, .select-all-btn, .member-chip, .delete-btn {
+                min-height: 44px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            /* Improved Form Elements */
+            input, select {
+                height: 44px;
+            }
+
+            /* Better Spacing */
+            .input-group {
+                margin-bottom: 15px;
+            }
+
+            .card {
+                padding: 15px;
+            }
+
+            /* Enhanced Notifications */
+            .notification {
+                width: 90%;
+                left: 50%;
+                transform: translateX(-50%) translateY(100px);
+            }
+
+            .notification.show {
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        /* Additional Touch-Friendly Styles */
+        @media (hover: none) {
+            .btn:hover {
+                transform: none;
+            }
+
+            .card:hover {
+                transform: none;
+            }
+
+            .member-chip:hover {
+                transform: none;
+            }
+
+            /* Active States for Touch */
+            .btn:active {
+                transform: scale(0.98);
+            }
+
+            .member-chip:active {
+                background: #e8e8e8;
+            }
+        }
+
+        /* Dark Mode Support */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --light: #1a1a1a;
+                --dark: #ffffff;
+            }
+
+            body {
+                background: #121212;
+            }
+
+            .card {
+                background: #1e1e1e;
+            }
+
+            input, select {
+                background: #2d2d2d;
+                color: white;
+            }
+
+            .member-chip {
+                background: #2d2d2d;
+                color: white;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <button class="mobile-menu-btn" onclick="toggleSidebar()">
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="logo">
+            <i class="fas fa-wallet"></i>
+            <span>SplitEase</span>
+        </div>
+        <div id="totalAmount"></div>
+    </nav>
+
+    <div class="container">
+        <div class="sidebar">
+            <div class="card">
+                <h2><i class="fas fa-users"></i> Group Members</h2>
+                <div class="input-group">
+                    <input type="text" id="memberName" placeholder="Enter member name" onkeypress="handleEnter(event)">
+                </div>
+                <button class="btn" onclick="addMember()">
+                    <i class="fas fa-user-plus"></i> Add Member
+                </button>
+                <div id="membersList" class="members-list"></div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="card">
+                <h2><i class="fas fa-plus-circle"></i> Add New Expense</h2>
+                <div class="input-group">
+                    <input type="text" id="expenseTitle" placeholder="What's this expense for?">
+                </div>
+                <div class="input-group">
+                    <input type="number" id="expenseAmount" placeholder="Amount (₹)">
+                </div>
+                <div class="input-group">
+                    <select id="paidBy">
+                        <option value="">Who paid?</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <div class="split-header">
+                        <h3>Split Between</h3>
+                        <button class="select-all-btn" onclick="toggleSelectAll()">Select All</button>
+                    </div>
+                    <div id="splitBetween" class="split-options"></div>
+                </div>
+                <button class="btn" onclick="addExpense()">
+                    <i class="fas fa-plus"></i> Add Expense
+                </button>
+            </div>
+
+            <div class="card">
+                <h2><i class="fas fa-list"></i> Recent Expenses</h2>
+                <div id="expensesList"></div>
+            </div>
+
+            <div class="card">
+                <h2><i class="fas fa-balance-scale"></i> Settlement Summary</h2>
+                <div id="settlementSummary"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="notification" class="notification"></div>
+
+    <script>
+        let members = [];
+        let expenses = [];
+        let allSelected = false;
+
+        function showNotification(message, isError = false) {
+            const notification = document.getElementById('notification');
+            notification.style.backgroundColor = isError ? '#ff4444' : '#4CAF50';
+            notification.textContent = message;
+            notification.style.display = 'block';
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+
+        function addMember() {
+            const nameInput = document.getElementById('memberName');
+            const name = nameInput.value.trim();
+
+            if (!name) {
+                showNotification('Please enter a name', true);
+                return;
+            }
+
+            if (members.includes(name)) {
+                showNotification('Member already exists', true);
+                return;
+            }
+
+            members.push(name);
+            nameInput.value = '';
+            updateMembersList();
+            updatePaidBySelect();
+            updateSplitBetweenCheckboxes();
+            showNotification('Member added successfully');
+        }
+
+        function updateMembersList() {
+            const membersList = document.getElementById('membersList');
+            membersList.innerHTML = members.map(member => `
+                <div class="member-chip">
+                    ${member}
+                    <span class="delete-btn" onclick="removeMember('${member}')">&times;</span>
+                </div>
+            `).join('');
+        }
+
+        function removeMember(member) {
+            members = members.filter(m => m !== member);
+            updateMembersList();
+            updatePaidBySelect();
+            updateSplitBetweenCheckboxes();
+            showNotification('Member removed');
+        }
+
+        function updatePaidBySelect() {
+            const paidBy = document.getElementById('paidBy');
+            paidBy.innerHTML = `
+                <option value="">Who paid?</option>
+                ${members.map(member => `
+                    <option value="${member}">${member}</option>
+                `).join('')}
+            `;
+        }
+
+        function updateSplitBetweenCheckboxes() {
+            const splitBetween = document.getElementById('splitBetween');
+            splitBetween.innerHTML = members.map(member => `
+                <div class="split-option">
+                    <input type="checkbox" id="split_${member}" value="${member}" 
+                        onchange="updateSelectAllButton()">
+                    <label for="split_${member}">${member}</label>
+                </div>
+            `).join('');
+            
+            // Reset select all button state
+            allSelected = false;
+            const selectAllBtn = document.querySelector('.select-all-btn');
+            if (selectAllBtn) {
+                selectAllBtn.classList.remove('selected');
+                selectAllBtn.textContent = 'Select All';
+            }
+        }
+
+        function toggleSelectAll() {
+            allSelected = !allSelected;
+            const selectAllBtn = document.querySelector('.select-all-btn');
+            selectAllBtn.classList.toggle('selected');
+            
+            members.forEach(member => {
+                const checkbox = document.getElementById(`split_${member}`);
+                if (checkbox) {
+                    checkbox.checked = allSelected;
+                }
+            });
+
+            // Update button text
+            selectAllBtn.textContent = allSelected ? 'Unselect All' : 'Select All';
+        }
+
+        function updateSelectAllButton() {
+            const totalCheckboxes = members.length;
+            const checkedCheckboxes = members.filter(member => 
+                document.getElementById(`split_${member}`).checked
+            ).length;
+
+            allSelected = totalCheckboxes === checkedCheckboxes;
+            const selectAllBtn = document.querySelector('.select-all-btn');
+            
+            if (selectAllBtn) {
+                selectAllBtn.classList.toggle('selected', allSelected);
+                selectAllBtn.textContent = allSelected ? 'Unselect All' : 'Select All';
+            }
+        }
+
+        function addExpense() {
+            const title = document.getElementById('expenseTitle').value.trim();
+            const amount = parseFloat(document.getElementById('expenseAmount').value);
+            const paidBy = document.getElementById('paidBy').value;
+            const splitBetween = members.filter(member => 
+                document.getElementById(`split_${member}`).checked
+            );
+
+            if (!title || !amount || !paidBy || splitBetween.length === 0) {
+                showNotification('Please fill all expense details', true);
+                return;
+            }
+
+            expenses.push({
+                title,
+                amount,
+                paidBy,
+                splitBetween
+            });
+
+            document.getElementById('expenseTitle').value = '';
+            document.getElementById('expenseAmount').value = '';
+            document.getElementById('paidBy').value = '';
+            members.forEach(member => {
+                document.getElementById(`split_${member}`).checked = false;
+            });
+
+            updateExpensesList();
+            calculateSettlement();
+            showNotification('Expense added successfully');
+
+            // After adding expense, reset select all button
+            allSelected = false;
+            const selectAllBtn = document.querySelector('.select-all-btn');
+            if (selectAllBtn) {
+                selectAllBtn.classList.remove('selected');
+                selectAllBtn.textContent = 'Select All';
+            }
+        }
+
+        function updateExpensesList() {
+            const expensesList = document.getElementById('expensesList');
+            expensesList.innerHTML = expenses.map(expense => `
+                <div class="expense-item">
+                    <h3>${expense.title}</h3>
+                    <p>Amount: ₹${expense.amount}</p>
+                    <p>Paid by: ${expense.paidBy}</p>
+                    <p>Split between: ${expense.splitBetween.join(', ')}</p>
+                </div>
+            `).join('');
+        }
+
+        function calculateSettlement() {
+            const balances = {};
+            members.forEach(member => {
+                balances[member] = 0;
+            });
+
+            expenses.forEach(expense => {
+                const payer = expense.paidBy;
+                const amount = expense.amount;
+                const splitAmount = amount / expense.splitBetween.length;
+
+                balances[payer] += amount;
+                expense.splitBetween.forEach(member => {
+                    balances[member] -= splitAmount;
+                });
+            });
+
+            const settlementSummary = document.getElementById('settlementSummary');
+            settlementSummary.innerHTML = Object.entries(balances).map(([member, balance]) => `
+                <p>${member}: ${balance >= 0 ? 
+                    `Gets back ₹${balance.toFixed(2)}` : 
+                    `Owes ₹${(-balance).toFixed(2)}`}</p>
+            `).join('');
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            sidebar.classList.toggle('show');
+        }
+
+        // Handle clicks outside sidebar to close it
+        document.addEventListener('click', (e) => {
+            const sidebar = document.querySelector('.sidebar');
+            const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+            
+            if (!sidebar.contains(e.target) && !mobileMenuBtn.contains(e.target)) {
+                sidebar.classList.remove('show');
+            }
+        });
+
+        // Prevent closing when clicking inside sidebar
+        document.querySelector('.sidebar').addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+
+        // Update viewport height for mobile browsers
+        function updateMobileViewportHeight() {
+            let vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        }
+
+        window.addEventListener('resize', updateMobileViewportHeight);
+        updateMobileViewportHeight();
+    </script>
+</body>
+</html>
+
+
